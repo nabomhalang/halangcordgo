@@ -1,27 +1,25 @@
 package config
 
 import (
-	"errors"
 	"os"
 	"strings"
 
 	_ "github.com/joho/godotenv/autoload"
 )
 
-type Environment struct {
-	TOKEN  string
-	Prefix string
-}
+var (
+	env Config
+	log *Logger = NewLogger("config")
+)
 
-var env *Environment
+func init() {
+	log.Info("Initializing config...")
 
-func initializeEnvironment() error {
-	env = &Environment{
-		TOKEN: strings.TrimSpace(os.Getenv("TOKEN")),
-	}
-
-	if len(env.TOKEN) == 0 {
-		return errors.New("TOKEN or INVITE_URL is not set")
+	token := strings.TrimSpace(os.Getenv("TOKEN"))
+	if len(token) == 0 || token == "" {
+		log.Fatal("TOKEN is required")
+	} else {
+		env.Token = token
 	}
 
 	prefix := strings.TrimSpace(os.Getenv("PREFIX"))
@@ -31,9 +29,28 @@ func initializeEnvironment() error {
 		env.Prefix = prefix
 	}
 
-	return nil
+	owner := strings.TrimSpace(os.Getenv("OWNER"))
+	if len(owner) == 0 {
+		log.Fatal("OWNER is required")
+	} else {
+		env.Owner = owner
+	}
+
+	cachePath := strings.TrimSpace(os.Getenv("CACHE_PATH"))
+	if len(cachePath) == 0 {
+		env.CachePath = "./audio_cache"
+	} else {
+		env.CachePath = cachePath
+	}
+
+	youtubeKey := strings.TrimSpace(os.Getenv("YOUTUBE_KEY"))
+	if len(youtubeKey) == 0 {
+		log.Fatal("YOUTUBE_KEY is required")
+	} else {
+		env.YoutubeKey = youtubeKey
+	}
 }
 
-func GetEnv() *Environment {
-	return env
+func Get() *Config {
+	return &env
 }
