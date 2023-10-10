@@ -1,6 +1,8 @@
 package queue
 
-import "sync"
+import (
+	"sync"
+)
 
 func NewQueue() Queue {
 	return Queue{

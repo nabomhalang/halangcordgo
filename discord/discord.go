@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/nabomhalang/halangcordgo/commands"
 	"github.com/nabomhalang/halangcordgo/config"
 	"github.com/nabomhalang/halangcordgo/server"
 	"github.com/nabomhalang/halangcordgo/utils"
@@ -35,7 +36,7 @@ func GuildCreate(s *discordgo.Session, g *discordgo.GuildCreate) {
 		Server[g.ID].VoiceChannelMembers[v.ChannelID].Add(1)
 	}
 
-	log.Infof("Joined guild %s (%s) Guild %s has %d voice channels", g.Name, g.ID, g.Name, len(Server[g.ID].VoiceChannelMembers))
+	// log.Infof("Joined guild %s (%s) Guild %s has %d voice channels", g.Name, g.ID, g.Name, len(Server[g.ID].VoiceChannelMembers))
 	Ready(s, nil)
 }
 
@@ -44,7 +45,7 @@ func GuildDelete(s *discordgo.Session, g *discordgo.GuildDelete) {
 		utils.ClearAndExit(g.ID)
 	}
 
-	log.Infof("Left guild %s (%s)", g.Name, g.ID)
+	// log.Infof("Left guild %s (%s)", g.Name, g.ID)
 	Ready(s, nil)
 }
 
@@ -82,5 +83,16 @@ func ChannelCreate(_ *discordgo.Session, c *discordgo.ChannelCreate) {
 func GuildMemberUpdate(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
 	if m.User.ID == s.State.User.ID && m.CommunicationDisabledUntil != nil && Server[m.GuildID].IsPlaying() {
 		utils.ClearAndExit(m.GuildID)
+	}
+}
+
+func RegisterCommands(s *discordgo.Session, commands map[string]commands.CommandHandler) {
+	for _, handler := range commands {
+		cmd := handler.Command()
+		log.Infof("Registering command %s", cmd.Name)
+		_, err := s.ApplicationCommandCreate(s.State.User.ID, "", cmd)
+		if err != nil {
+			log.Errorf("Failed to register command %s: %s", cmd.Name, err.Error())
+		}
 	}
 }

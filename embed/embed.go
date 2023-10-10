@@ -1,6 +1,8 @@
 package embed
 
 import (
+	"math/rand"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/nabomhalang/halangcordgo/config"
 )
@@ -14,14 +16,20 @@ type Embed struct {
 }
 
 func NewEmbed() *Embed {
-	return &Embed{&discordgo.MessageEmbed{}}
+	return &Embed{&discordgo.MessageEmbed{
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: "ⓒ 2023 nabomhalang. All rights reserved.",
+		},
+	}}
 }
 
+// SetTitle sets the title of the embed.
 func (e *Embed) SetTitle(name string) *Embed {
 	e.Title = name
 	return e
 }
 
+// SetDescription sets the description of the embed.
 func (e *Embed) SetDescription(description string) *Embed {
 	if len(description) > 2028 {
 		description = description[:2028]
@@ -31,7 +39,10 @@ func (e *Embed) SetDescription(description string) *Embed {
 	return e
 }
 
-func (e *Embed) AddField(name, value string) *Embed {
+// AddField adds a field to the embed.
+// name is the title of the field.
+// value is the content of the field.
+func (e *Embed) AddField(name, value string, inline bool) *Embed {
 	if len(value) > 1024 {
 		value = value[:1024]
 	}
@@ -41,13 +52,18 @@ func (e *Embed) AddField(name, value string) *Embed {
 	}
 
 	e.Fields = append(e.Fields, &discordgo.MessageEmbedField{
-		Name:  name,
-		Value: value,
+		Name:   name,
+		Value:  value,
+		Inline: inline,
 	})
 
 	return e
 }
 
+// SetFooter sets the footer of the embed.
+// args[0] = text
+// args[1] = iconURL
+// args[2] = proxyURL
 func (e *Embed) SetFooter(args ...string) *Embed {
 	iconURL := ""
 	text := ""
@@ -75,6 +91,9 @@ func (e *Embed) SetFooter(args ...string) *Embed {
 	return e
 }
 
+// SetImage sets the image of the embed.
+// args[0] = URL
+// args[1] = proxyURL
 func (e *Embed) SetImage(args ...string) *Embed {
 	var URL string
 	var proxyURL string
@@ -95,6 +114,9 @@ func (e *Embed) SetImage(args ...string) *Embed {
 	return e
 }
 
+// SetThumbnail sets the thumbnail of the embed.
+// args[0] = URL
+// args[1] = proxyURL
 func (e *Embed) SetThumbnail(args ...string) *Embed {
 	var URL string
 	var proxyURL string
@@ -115,6 +137,11 @@ func (e *Embed) SetThumbnail(args ...string) *Embed {
 	return e
 }
 
+// SetAuthor sets the author of the embed.
+// args[0] = name
+// args[1] = iconURL
+// args[2] = URL
+// args[3] = proxyURL
 func (e *Embed) SetAuthor(args ...string) *Embed {
 	var (
 		name     string
@@ -149,16 +176,52 @@ func (e *Embed) SetAuthor(args ...string) *Embed {
 	return e
 }
 
+// SetURL sets the URL of the embed.
+// url is the URL of the embed.
 func (e *Embed) SetURL(url string) *Embed {
 	e.URL = url
 	return e
 }
 
-func (e *Embed) SetColor(clr int) *Embed {
-	e.Color = clr
+// SetColor sets the color of the embed.
+// color can be an int representing the color value or a string.
+// Available string values are: "red", "green", "blue", "yellow", "orange",
+// "purple", "pink", "white", "black", and "random".
+func (e *Embed) SetColor(color interface{}) *Embed {
+	switch color.(type) {
+	case int:
+		e.Color = color.(int)
+	case string:
+		switch color.(string) {
+		case "red":
+			e.Color = 0xFF0000
+		case "green":
+			e.Color = 0x00FF00
+		case "blue":
+			e.Color = 0x0000FF
+		case "yellow":
+			e.Color = 0xFFFF00
+		case "orange":
+			e.Color = 0xFFA500
+		case "purple":
+			e.Color = 0x800080
+		case "pink":
+			e.Color = 0xFFC0CB
+		case "white":
+			e.Color = 0xFFFFFF
+		case "black":
+			e.Color = 0x000000
+		case "random":
+			e.Color = rand.Intn(0xFFFFFF)
+		}
+	default:
+		e.Color = 0x000000
+	}
+
 	return e
 }
 
+// InlineAllFields sets all fields to be inline.
 func (e *Embed) InlineAllFields() *Embed {
 	for _, v := range e.Fields {
 		v.Inline = true
@@ -166,6 +229,7 @@ func (e *Embed) InlineAllFields() *Embed {
 	return e
 }
 
+// Truncate truncates the embed to the maximum allowed length.
 func (e *Embed) Truncate() *Embed {
 	e.TruncateDescription()
 	e.TruncateFields()

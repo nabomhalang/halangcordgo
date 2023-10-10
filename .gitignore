@@ -1,2 +1,5 @@
 # env
 .env
+
+# audio cache
+audio_cache/
